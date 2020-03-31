@@ -7,6 +7,7 @@
 #include "framework.h"
 #include<api/xuidreg/xuidreg.h>
 #include<api/event/genericEvent.h>
+#include<I18N.h>
 Logger<stdio_commit> LOG(stdio_commit{ "[BDX] " });
 static void PrintErrorMessage() {
 	DWORD errorMessageID = ::GetLastError();
@@ -36,7 +37,7 @@ static void loadall() {
 	static std::vector<std::pair<std::wstring, HMODULE>> libs;
 	using namespace std::filesystem;
 	create_directory("bdxmod");
-	LOG("BedrockX Loaded!");
+	LOG("BedrockX Loaded! version 20200331_2");
 	fixupLIBDIR();
 	directory_iterator ent("bdxmod");
 	for (auto& i : ent) {
@@ -55,7 +56,7 @@ static void loadall() {
 	for (auto& [name, h] : libs) {
 		auto FN = GetProcAddress(h, "onPostInit");
 		if (!FN) {
-			std::wcerr << "Warning!!! mod" << name << " doesnt have a onPostInit\n";
+			//std::wcerr << "Warning!!! mod" << name << " doesnt have a onPostInit\n";
 		}
 		else {
 			((void (*)()) FN)();
@@ -69,6 +70,7 @@ namespace GUI {
 void entry() {
 	XIDREG::initAll();
 	GUI::INIT();
+	I18N::InitAll();
 	loadall();
 	PostInitEvent::_call();
 	PostInitEvent::_removeall();
