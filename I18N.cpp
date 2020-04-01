@@ -1,6 +1,8 @@
 ﻿#include<lbpch.h>
 #include<I18N.h>
 #include<JsonLoader.h>
+
+
 namespace I18N {
 	LIGHTBASE_API string CMD_SUCCESS;
 	LIGHTBASE_API string CMD_EXCEPTION;
@@ -22,3 +24,4 @@ namespace I18N {
 		}
 	}
 }
+

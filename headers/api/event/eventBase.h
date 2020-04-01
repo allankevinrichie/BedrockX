@@ -47,11 +47,17 @@ struct CallBackStorage {
 	CallBackStorage(function<void(T&)>&& fun,LInfo<T> lf):data(std::forward< function<void(T&)>>(fun)),id(lf) {
 	}
 };
+#ifdef LIGHTBASE_EXPORTS
 static inline void logError(const char* e,const char* T) {
 	char ebuf[1024];
 	snprintf(ebuf, 1024, I18N::EVENT_EXCEPTION_S.c_str(), e, T);
 	LOG.l<LOGLVL::Error>(ebuf);
 }
+#else
+static inline void logError(const char* e, const char* T) {
+	printf(I18N::EVENT_EXCEPTION_S.c_str(), e, T);
+}
+#endif
 template <class T>
 class EventCaller {
 	LIGHTBASE_API static std::list<CallBackStorage<T>> listener;

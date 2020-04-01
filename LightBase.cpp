@@ -70,6 +70,7 @@ namespace GUI {
 void entry() {
 	XIDREG::initAll();
 	GUI::INIT();
+	WItem::determine_off();
 	I18N::InitAll();
 	loadall();
 	PostInitEvent::_call();

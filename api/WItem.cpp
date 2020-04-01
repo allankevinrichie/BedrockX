@@ -31,11 +31,8 @@ static void procoff() {
 	SymCall("?init@ItemStackBase@@IEAAXHHH@Z", void, void*, int, int, int)(filler, 0, 114, 0);
 	inMagic = false;
 }
-struct determine_off {
-	determine_off() {
-		addListener([](ServerStartedEvent&) {
+void WItem::determine_off() {
+	addListener([](ServerStartedEvent&) {
 			procoff();
-		});
-	}
-};
-static determine_off __execnow;
+	});
+}

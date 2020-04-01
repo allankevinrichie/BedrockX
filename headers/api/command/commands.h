@@ -112,7 +112,7 @@ namespace CMDREG {
 						b.success(I18N::CMD_SUCCESS, {});
 				}
 				catch (std::exception e) {
-					b.error(I18N::CMD_EXCEPTION+e);
+					b.error(I18N::CMD_EXCEPTION+e.what());
 				}
 				catch (string e) {
 					b.error(I18N::CMD_EXCEPTION+e);

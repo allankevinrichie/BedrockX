@@ -80,10 +80,10 @@ struct WPlayer : Wrapped<ServerPlayer> {
 	WPlayer() : Wrapped<ServerPlayer>() {}
 	WPlayer(Player& x) : Wrapped<ServerPlayer>(*(ServerPlayer*)&x) {}
 	WPlayer(ServerPlayer& x) : Wrapped<ServerPlayer>(x) {}
-	WActor* actor() {
+	inline WActor* actor() {
 		return (WActor*)this;
 	}
-	WMob* mob() {
+	inline WMob* mob() {
 		return (WMob*)this;
 	}
 	LBAPI string const& getName();
@@ -91,13 +91,13 @@ struct WPlayer : Wrapped<ServerPlayer> {
 	LBAPI string getRealName();
 	LBAPI permlvl_t getPermLvl();
 	LBAPI class BlockSource& getBlockSource_();
-	void teleport(Vec3 to, int dimid) {
+	inline void teleport(Vec3 to, int dimid) {
 		actor()->teleport(to, dimid);
 	}
-	auto getDimID() {
+	inline auto getDimID() {
 		return actor()->getDimID();
 	}
-	auto getDim() {
+	inline auto getDim() {
 		return actor()->getDim();
 	}
 	LBAPI void sendText(string_view text, TextType type = RAW);
@@ -106,18 +106,23 @@ struct WPlayer : Wrapped<ServerPlayer> {
 	LBAPI void kill() {
 		mob()->kill();
 	}
-	LBAPI bool runcmd(string const& str) {
+	inline bool runcmd(string const& str) {
 		return BDX::runcmdAs(*this, str);
+	}
+	template<typename... T>
+	inline bool runcmdA(T&&... a) {
+		return BDX::runcmdAsA(*this, std::forward<T>(a)...);
 	}
 	LBAPI class NetworkIdentifier* _getNI();
 	LBAPI class Certificate* _getCert();
-	string getIP() {
+	inline string getIP() {
 		return BDX::getIP(*_getNI());
 	}
 };
 struct WItem : Wrapped<ItemStack> {
 	WItem(ItemStack& is) : Wrapped<ItemStack>(is) {}
 	LBAPI unsigned char getCount() const;
+	static void determine_off();
 };
 struct WBlock : Wrapped<Block> {
 	WBlock(Block const& i) : Wrapped<Block>(i) {}
