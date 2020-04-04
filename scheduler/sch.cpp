@@ -10,7 +10,7 @@ namespace Handler {
 	LIGHTBASE_API tick_t ticknow;
 	LIGHTBASE_API taskid_t gtaskid;
 	static int mainid;
-	static tick_t _tick;
+	tick_t _tick;
 	static std::multimap<tick_t, ITaskBase> tasks;
 	static std::deque<function<void()>> next_run;
 	static std::atomic<int> cas;
@@ -69,20 +69,23 @@ namespace Handler {
 		cas_nextrun.store(false);
 	}
 	inline static void nextrun() {
+		WATCH_ME("tick - nextrun");
+		if (next_run.empty())
+			return;
 		bool lck = false;
 		while (!cas_nextrun.compare_exchange_weak(lck, true))
 			;
+		try {
 		while (!next_run.empty()) {
-			try {
-				next_run.front()();
-			}
-			catch (std::exception e) {
-				printf("[Scheduler] exception when nextTask %s\n", e.what());
-			}
-			catch (...) {
-				printf("[Scheduler] exception when nextTask\n");
-			}
+			next_run.front()();
 			next_run.pop_front();
+		}
+		}
+		catch (std::exception e) {
+			printf("[Scheduler] exception when nextTask %s\n", e.what());
+		}
+		catch (...) {
+			printf("[Scheduler] exception when nextTask\n");
 		}
 		cas_nextrun.store(false);
 	}
@@ -92,6 +95,7 @@ namespace Handler {
 		if (_tick % 10 != 0)
 			return;
 		ticknow++;
+		WATCH_ME("tick - MainTick");
 		int myid = getTID();
 		bool locked = false;
 		if (myid == mainid && cas.load() == mainid) {
@@ -103,35 +107,36 @@ namespace Handler {
 		}
 		auto it = tasks.begin();
 		auto end = tasks.end();
-		for (; it != end;) {
-			if (ticknow >= it->first) {
-				try {
+		try {
+			for (;it!=end;) {
+				if (ticknow >= it->first) {
 					it->second.cb();
+					if (it->second.interval != 0) {
+						it->second.schedule_time = ticknow + it->second.interval;
+						tasks.emplace(it->second.schedule_time, std::move(it->second));
+					}
+					tasks.erase(it++);
 				}
-				catch (std::exception e) {
-					printf("[Scheduler] exception when runTask %s\n", e.what());
+				else {
+					break;
 				}
-				catch (...) {
-					printf("[Scheduler] exception when runTask\n");
-				}
-				if (it->second.interval != 0) {
-					it->second.schedule_time = ticknow + it->second.interval;
-					tasks.emplace(it->second.schedule_time, std::move(it->second));
-				}
-				tasks.erase(it++);
 			}
-			else {
-				break;
-			}
-			if (locked)
-				cas.store(0);
 		}
+		catch (std::exception e) {
+			printf("[Scheduler] exception when runTask %s\n", e.what());
+		}
+		catch (...) {
+			printf("[Scheduler] exception when runTask\n");
+		}
+		if (locked)
+			cas.store(0);
 	}
 }
 static bool inited = false;
 THook(void, "?tick@Level@@UEAAXXZ", class Level* lv) {
 	if (!inited)
 		Handler::Init(), inited = true;
+	WATCH_ME("tick level");
 	original(lv);
 	Handler::tick();
 }

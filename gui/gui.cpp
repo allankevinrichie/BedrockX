@@ -54,6 +54,7 @@ namespace GUI {
 		ws.apply(VarUInt(form->formid), MCString(payload));
 		MyPkt<100, false> guipk{ ws.data };
 		sp.sendNetworkPacket(guipk);
+		formMap._map.erase(&sp);
 		formMap._map.emplace(&sp, std::forward<std::unique_ptr<IFormBinder>>(form));
 	}
 #define strval(x) Value(x.data(), (rapidjson::SizeType)x.size())
@@ -179,15 +180,18 @@ THook(void, "?handle@?$PacketHandlerDispatcherInstance@VModalFormResponsePacket@
 	ServerPlayer* sp = snh._getServerPlayer(neti, pkt[16]);
 	if (sp) {
 		auto it = formMap._map.find(sp);
+		//LOG("gui from", sp->getNameTag(), it != formMap._map.end());
 		if (it != formMap._map.end()) {
 			auto& fid = *(unsigned int*)(pkt + 40);
 			auto& str = *(string*)(pkt + 48);
+			//LOG("gui proc", sp->getNameTag(), fid, "need", it->second->formid);
 			if (it->second->formid != fid)
 				return;
 			std::unique_ptr<IFormBinder> pBinder;
 			pBinder.swap(it->second);
 			formMap._map.erase(it);
 			pBinder->invoke(*sp, str);
+			//LOG("gui done", sp->getNameTag());
 		}
 	}
 }

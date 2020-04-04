@@ -16,10 +16,10 @@ void KVDBImpl::__init(const char* path, bool read_cache, int cache_sz, int Bfilt
 		options.block_cache = leveldb::NewLRUCache(cache_sz);
 	}
 	options.reuse_logs = true; //WARN:EXPERIMENTAL
-	options.create_if_missing = true;
-	dpath = path;
 	if (Bfilter_bit)
 		options.filter_policy = leveldb::NewBloomFilterPolicy(Bfilter_bit);
+	options.create_if_missing = true;
+	dpath = path;
 	leveldb::Status status = leveldb::DB::Open(options, path, &db);
 	if (!status.ok()) {
 		printf("cannot load %s reason: %s", path, status.ToString().c_str());
@@ -41,12 +41,14 @@ bool KVDBImpl::get(string_view key, string& val) {
 	return true;
 }
 void KVDBImpl::put(string_view key, string_view val) {
+	WATCH_ME("put kvdb " + dpath);
 	auto s=db->Put(wropt, leveldb::Slice(key.data(), key.size()), leveldb::Slice(val.data(), val.size()));
 	if (!s.ok()) {
 		printf("[DB Error]put %s %s\n", dpath.c_str(), s.ToString().c_str());
 	}
 }
 void KVDBImpl::del(string_view key) {
+	WATCH_ME("del kvdb " + dpath);
 	auto s=db->Delete(wropt, leveldb::Slice(key.data(), key.size()));
 	if (!s.ok()) {
 		printf("[DB Error]del %s %s\n", dpath.c_str(), s.ToString().c_str());

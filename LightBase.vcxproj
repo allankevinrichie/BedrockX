@@ -279,6 +279,7 @@
     <ClCompile Include="api\WLevel.cpp" />
     <ClCompile Include="api\WMob.cpp" />
     <ClCompile Include="api\WPlayer.cpp" />
+    <ClCompile Include="debug\watchdog.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="dlsym.cpp" />
     <ClCompile Include="event\ActorEvent.cpp" />
@@ -325,6 +326,7 @@
     <ClInclude Include="headers\api\types\types.h" />
     <ClInclude Include="headers\api\xuidreg\xuidreg.h" />
     <ClInclude Include="headers\api_pch.h" />
+    <ClInclude Include="headers\debug\WatchDog.h" />
     <ClInclude Include="headers\I18N.h" />
     <ClInclude Include="headers\JsonLoader.h" />
     <ClInclude Include="headers\mcapi\Actor.h" />

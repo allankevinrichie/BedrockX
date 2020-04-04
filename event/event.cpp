@@ -2,7 +2,10 @@
 #include<api\event\event_pch.h>
 static int LID;
 LIGHTBASE_API int newListenerID() {
-	return ++LID;
+	LID++;
+	if (LID < 0)
+		LID = 1;
+	return LID;
 }
 #define EXPORT_EVENT(T) \
 template<> \

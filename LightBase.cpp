@@ -8,6 +8,9 @@
 #include<api/xuidreg/xuidreg.h>
 #include<api/event/genericEvent.h>
 #include<I18N.h>
+LIGHTBASE_API unsigned long long GetBDXAPILevel() {
+	return 20200404;
+}
 Logger<stdio_commit> LOG(stdio_commit{ "[BDX] " });
 static void PrintErrorMessage() {
 	DWORD errorMessageID = ::GetLastError();
@@ -37,7 +40,7 @@ static void loadall() {
 	static std::vector<std::pair<std::wstring, HMODULE>> libs;
 	using namespace std::filesystem;
 	create_directory("bdxmod");
-	LOG("BedrockX Loaded! version 20200331_2");
+	LOG("BedrockX Loaded! version 20200404");
 	fixupLIBDIR();
 	directory_iterator ent("bdxmod");
 	for (auto& i : ent) {
@@ -59,7 +62,13 @@ static void loadall() {
 			//std::wcerr << "Warning!!! mod" << name << " doesnt have a onPostInit\n";
 		}
 		else {
-			((void (*)()) FN)();
+			try {
+				((void (*)()) FN)();
+			}
+			catch (...) {
+				std::wcerr << "Error!!! mod" << name << " throws an exception when onPostInit\n";
+				exit(1);
+			}
 		}
 	}
 	libs.clear();
@@ -67,7 +76,19 @@ static void loadall() {
 namespace GUI {
 	void INIT();
 };
-void entry() {
+void FixUpCWD() {
+	string buf;
+	buf.assign(8192, '\0');
+	GetModuleFileNameA(nullptr, buf.data(), 8192);
+	buf = buf.substr(0, buf.find_last_of('\\'));
+	SetCurrentDirectoryA(buf.c_str());
+}
+void entry(bool fixcwd) {
+	if (fixcwd)
+		FixUpCWD();
+	#ifdef TRACING_ENABLED
+	DOG_INIT();
+	#endif
 	XIDREG::initAll();
 	GUI::INIT();
 	WItem::determine_off();
@@ -76,9 +97,9 @@ void entry() {
 	PostInitEvent::_call();
 	PostInitEvent::_removeall();
 }
-THook(int, "main", void* a, void* b) {
+THook(int, "main", int a, void* b) {
 	std::ios::sync_with_stdio(false);
 	system("chcp 65001");
-	entry();
+	entry(a>1);
 	return original(a, b);
 }
