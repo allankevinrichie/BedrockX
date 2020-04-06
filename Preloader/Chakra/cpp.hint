@@ -1,0 +1,2 @@
+#define CHAKRA_API __declspec(dllexport)
+#define CHAKRA_API __declspec(dllimport)

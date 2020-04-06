@@ -121,9 +121,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>LIGHTBASE</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);headers;</IncludePath>
+    <IncludePath>$(SolutionDir)\third-party\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\headers;</IncludePath>
     <GenerateManifest>false</GenerateManifest>
     <CodeAnalysisRuleSet>codechk.ruleset</CodeAnalysisRuleSet>
+    <LibraryPath>$(SolutionDir)\third-party\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='bds|x64'">
     <TargetName>LIGHTBASE</TargetName>
@@ -354,6 +355,10 @@
     <ClInclude Include="headers\stl\viewhelper.h" />
     <ClInclude Include="headers\stl\views.h" />
     <ClInclude Include="headers\stl_pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="third-party\lib\detours.lib" />
+    <Library Include="third-party\lib\leveldb.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

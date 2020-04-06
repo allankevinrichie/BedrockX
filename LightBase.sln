@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LightBase", "LightBase.vcxproj", "{C4C220AB-3338-4F3D-A678-A4C20E491A16}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chakra", "C:\Users\Administrator\source\repos\Chakra\Chakra.vcxproj", "{0136A4C1-10AF-480B-B845-006821CE5054}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chakra", "Preloader\Chakra\Chakra.vcxproj", "{0136A4C1-10AF-480B-B845-006821CE5054}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

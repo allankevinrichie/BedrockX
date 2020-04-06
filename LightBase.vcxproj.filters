@@ -301,4 +301,8 @@
       <Filter>头文件\debug</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="third-party\lib\detours.lib" />
+    <Library Include="third-party\lib\leveldb.lib" />
+  </ItemGroup>
 </Project>
