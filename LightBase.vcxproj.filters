@@ -300,6 +300,9 @@
     <ClInclude Include="headers\debug\WatchDog.h">
       <Filter>头文件\debug</Filter>
     </ClInclude>
+    <ClInclude Include="headers\stl\CBStorage.h">
+      <Filter>头文件\stl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="third-party\lib\detours.lib" />

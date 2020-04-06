@@ -9,7 +9,7 @@ LIGHTBASE_API int newListenerID() {
 }
 #define EXPORT_EVENT(T) \
 template<> \
-	LIGHTBASE_API std::list<CallBackStorage<T>> EventCaller<T>::listener = { {} }
+	LIGHTBASE_API std::list<CallBackStorage<T>> EventCaller<T>::listener_v2 = { {} }
 EXPORT_EVENT(PlayerPreJoinEvent);
 EXPORT_EVENT(PlayerJoinEvent);
 EXPORT_EVENT(PlayerLeftEvent);

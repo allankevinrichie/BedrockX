@@ -346,6 +346,7 @@
     <ClInclude Include="headers\lbpch.h" />
     <ClInclude Include="headers\rapidjson\rapidjson.h" />
     <ClInclude Include="headers\stl\Bstream.h" />
+    <ClInclude Include="headers\stl\CBStorage.h" />
     <ClInclude Include="headers\stl\KVDB.h" />
     <ClInclude Include="headers\stl\langPack.h" />
     <ClInclude Include="headers\stl\Logger.h" />
