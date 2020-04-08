@@ -327,6 +327,7 @@
     <ClInclude Include="headers\api\types\types.h" />
     <ClInclude Include="headers\api\xuidreg\xuidreg.h" />
     <ClInclude Include="headers\api_pch.h" />
+    <ClInclude Include="headers\debug\MemSearcher.h" />
     <ClInclude Include="headers\debug\WatchDog.h" />
     <ClInclude Include="headers\I18N.h" />
     <ClInclude Include="headers\JsonLoader.h" />

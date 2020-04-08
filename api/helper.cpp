@@ -6,22 +6,44 @@ namespace BDX {
 	static void dummy() {
 	}
 	struct SCO {
-		char filler[0x48];
-		void* fake_vtbl[26];
+		void* myVTBL;
+		void* UUID[2];
+		ServerLevel* lvl;
+		string Name;
+		uchar Perm;
+		static void* fake_vtbl[26];
 		SCO() {
+			#if 0
 			SymCall("??0ServerCommandOrigin@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEAVServerLevel@@W4CommandPermissionLevel@@@Z", void, void*, string const&, ServerLevel*, int)(this, "Server", LocateS<ServerLevel>()._srv, 5);
 			void** vtbl = (*(void***)filler) - 1;
 			memcpy(fake_vtbl, vtbl, sizeof(fake_vtbl));
 			//vtbl: 0x0:RTTI info,0x8 D2Ev
 			*(void**)filler = fake_vtbl + 1;
 			fake_vtbl[1] = (void*)dummy;
+			#endif
+			if (fake_vtbl[1] == nullptr) {
+				memcpy(fake_vtbl, (void**)(SYM("??_7ServerCommandOrigin@@6B@"))-1, sizeof(fake_vtbl));
+				fake_vtbl[1] = (void*)dummy;
+			}
+			myVTBL = fake_vtbl+1;
+			Name = "Server";
+			Perm = 5;
+			lvl = LocateS<ServerLevel>::_srv;
 		}
 	};
-	static SCO* pSCO;
+	void* SCO::fake_vtbl[26];
+	static_assert(offsetof(SCO, Perm) == 64);
 	LBAPI bool runcmd(const string& cmd) {
-		if (!pSCO)
-			pSCO = new SCO();
-		return MinecraftCommands::_runcmd(pSCO, cmd, 4, 1);
+		static SCO origin;
+		return MinecraftCommands::_runcmd(&origin, cmd, 4, 1);
+	}
+	static unordered_map<void*, string*> origin_res;
+	LBAPI std::pair<bool, string> runcmdEx(const string& cmd) {
+		SCO origin;
+		string val;
+		origin_res[&origin] = &val;
+		bool rv = MinecraftCommands::_runcmd(&origin, cmd, 4, 1);
+		return { rv, std::move(val) };
 	}
 	static void* FAKE_PORGVTBL[26];
 	LBAPI bool runcmdAs(WPlayer wp, const string& cmd) {
@@ -34,8 +56,35 @@ namespace BDX {
 		filler[0] = FAKE_PORGVTBL+1;
 		return MinecraftCommands::_runcmd(filler, cmd, 4, 1);
 	}
-	LBAPI string getIP(class NetworkIdentifier& ni) {
+	LBAPI string getIP(class ::NetworkIdentifier& ni) {
 		string rv = LocateS<RakPeer_t>()->getAdr(ni).toString();
 		return rv.substr(0,rv.find('|'));
 	}
 };
+THook(void*, "?send@CommandOutputSender@@UEAAXAEBVCommandOrigin@@AEBVCommandOutput@@@Z", void* thi, void* ori, void* out) {
+	auto it = BDX::origin_res.find(ori);
+	if (it == BDX::origin_res.end())
+		return original(thi, ori, out);
+	#if 0
+	struct CommandMsg {
+		int iserror;
+		string msg;
+		char filler[24];
+	};
+	static_assert(sizeof(CommandMsg) == 64);
+	static_assert(offsetof(CommandMsg, msg) == 8);
+	auto& msgs=dAccess<vector<CommandMsg>, 16>(out);
+	LOG(msgs.size());
+	for (auto& i : msgs) {
+		LOG(i.iserror,i.msg);
+	}
+	#endif
+	std::stringbuf sbuf;
+	auto oBuf=std::cout.rdbuf();
+	std::cout.rdbuf(&sbuf);
+	auto rv= original(thi, ori, out);
+	std::cout.rdbuf(oBuf);
+	it->second->assign(sbuf.str());
+	BDX::origin_res.erase(it);
+	return rv;
+}

@@ -5,6 +5,7 @@
 #include<api\refl\playerMap.h>
 #include<mcapi/Player.h>
 #include<mcapi/Certificate.h>
+#include<debug\MemSearcher.h>
 LBAPI void WPlayer::sendText(string_view text, TextType tp) {
 	WBStream txtpkws;
 	txtpkws.data.reserve(8 + text.size());
@@ -12,13 +13,18 @@ LBAPI void WPlayer::sendText(string_view text, TextType tp) {
 	MyPkt<9> pk{ txtpkws.data };
 	v->sendNetworkPacket(pk);
 }
-static uintptr_t poff_neti, poff_pcert;
+static MSearcher<NetworkIdentifier, 144, 2904, 3200> MS_NI;
+static MSearcher<Certificate*, 8, 3208, 3400> MS_PC;
 THook(void*, "??0ServerPlayer@@QEAA@AEAVLevel@@AEAVPacketSender@@AEAVNetworkHandler@@AEAVActiveTransfersManager@Server@ClientBlobCache@@W4GameType@@AEBVNetworkIdentifier@@EV?$function@$$A6AXAEAVServerPlayer@@@Z@std@@VUUID@mce@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$unique_ptr@VCertificate@@U?$default_delete@VCertificate@@@std@@@std@@H@Z", class Player* a1, __int64 a2, __int64 a3, __int64 a4, __int64 a5, int a6, void* a7, __int64 a8, __int64 a9, void* a10_uuid, __int64 a11, void** a12, __int64 a13) {
 	void* pCert = *a12;
 	auto rv = original(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10_uuid, a11, a12, a13);
-	if (poff_neti)
-		return rv;
 	void* pNeti = a7;
+	if (MS_NI._Off == 0) {
+		MS_NI.Init(a1, a7);
+		MS_PC.Init(a1, &pCert);
+	}
+	return rv;
+	#if 0
 	uintptr_t thi = (uintptr_t)a1;
 	for (uintptr_t off = 8; off <= 4000; off += 8) {
 		if (*(void**)(thi + off) == pCert) {
@@ -37,17 +43,14 @@ THook(void*, "??0ServerPlayer@@QEAA@AEAVLevel@@AEAVPacketSender@@AEAVNetworkHand
 		}
 	}
 	LOG("[WPlayer] get net",poff_neti,"cert", poff_pcert);
+	#endif
 	return rv;
 }
 LBAPI NetworkIdentifier* WPlayer::_getNI() {
-	auto ptr = (uintptr_t)v;
-	ptr += poff_neti;
-	return (NetworkIdentifier*)ptr;
+	return &MS_NI.get(v);
 }
 LBAPI Certificate* WPlayer::_getCert() {
-	auto ptr = (uintptr_t)v;
-	ptr += poff_pcert;
-	return *(Certificate**)ptr;
+	return MS_PC.get(v);
 }
 LBAPI void WPlayer::kick(const string& reason) {
 	LocateS<ServerNetworkHandler>()->disconnectClient(*_getNI(), reason, false);
