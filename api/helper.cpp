@@ -85,6 +85,8 @@ THook(void*, "?send@CommandOutputSender@@UEAAXAEBVCommandOrigin@@AEBVCommandOutp
 	auto rv= original(thi, ori, out);
 	std::cout.rdbuf(oBuf);
 	it->second->assign(sbuf.str());
+	while (it->second->size() && (it->second->back() == '\n' || it->second->back() == '\r'))
+		it->second->pop_back(); 
 	BDX::origin_res.erase(it);
 	return rv;
 }

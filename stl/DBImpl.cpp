@@ -23,8 +23,8 @@ void KVDBImpl::__init(const char* path, bool read_cache, int cache_sz, int Bfilt
 	leveldb::Status status = leveldb::DB::Open(options, path, &db);
 	if (!status.ok()) {
 		printf("cannot load %s reason: %s", path, status.ToString().c_str());
+		exit(1);
 	}
-	assert(status.ok());
 }
 KVDBImpl::~KVDBImpl() {
 	if (options.filter_policy)
