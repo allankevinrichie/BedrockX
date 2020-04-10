@@ -30,6 +30,7 @@ EXPORT_EVENT(PostInitEvent);
 EXPORT_EVENT(MobDeathEvent);
 EXPORT_EVENT(MobHurtedEvent);
 EXPORT_EVENT(LevelExplodeEvent);
+EXPORT_EVENT(PlayerChangeDimEvent);
 
 static struct exec_now {
 	exec_now() {
@@ -49,6 +50,8 @@ static struct exec_now {
 			OPTIMIZE_EVENT(MobDeathEvent);
 			OPTIMIZE_EVENT(MobHurtedEvent);
 			OPTIMIZE_EVENT(LevelExplodeEvent);
+
+			OPTIMIZE_EVENT(PlayerChangeDimEvent);
 		});
 	}
 } __exec_now;

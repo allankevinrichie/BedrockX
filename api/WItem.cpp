@@ -1,24 +1,17 @@
 ﻿#include <lbpch.h>
 #include<api\types\types.h>
 #include<api\event\genericEvent.h>
-static uintptr_t icnt_off;
+#include<debug/MemSearcher.h>
 static bool inMagic;
+static MSearcher<unsigned char, 1, 34, 96> MS_WCNT;
 unsigned char WItem::getCount() const {
-	return *(unsigned char*)(((uintptr_t)v) + icnt_off);
+	return MS_WCNT.get(v);
 }
-THook(void*, "?_setItem@ItemStackBase@@IEAA_NH@Z", char* a, int b) {
+THook(void*, "?_setItem@ItemStackBase@@IEAA_NH@Z", class ItemStack* a, int b) {
 	if (inMagic) {
-		int hits = 0;
-		for (uintptr_t i = 8; i <= 90; ++i) {
-			if (a[i] == 114) {
-				LOG("[WITEM]", "found offset", i);
-				icnt_off = i;
-				++hits;
-			}
-		}
-		if (hits != 1) {
-			LOG.p<LOGLVL::Fatal>("[WItem] Cant Find off!!!", icnt_off);
-		}
+		unsigned char pay = 114;
+		MS_WCNT.Init(a, &pay);
+		LOG("[WItem] offset", MS_WCNT._Off);
 		return nullptr;
 	}
 	return original(a, b);

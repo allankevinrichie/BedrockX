@@ -18,7 +18,15 @@ EXPORT_EVENT(PlayerUseItemOnEntityEvent);
 LBAPI PlayerUseItemOnEntityEvent::PlayerUseItemOnEntityEvent(ServerPlayer& sp, ActorRuntimeID rti, int _type): IGenericPlayerEvent<PlayerUseItemOnEntityEvent>(sp), rtid(rti),type((TransType)_type) {
 	victim = LocateS<ServerLevel>()->getRuntimeEntity(rtid, false);
 }
-THook(void, "?_onClientAuthenticated@ServerNetworkHandler@@AEAAXAEBVNetworkIdentifier@@AEBVCertificate@@@Z", void* snh, NetworkIdentifier& neti, Certificate& cert) {
+THook(void*, "?_playerChangeDimension@Level@@AEAA_NPEAVPlayer@@AEAVChangeDimensionRequest@@@Z", void* level, ServerPlayer& player, void* req) {
+	int before=WPlayer{ player }.getDimID();
+	auto rv = original(level, player, req);
+	int after = WPlayer{ player }.getDimID();
+	if (before!=after)
+		PlayerChangeDimEvent::_call(player,before,after);
+	return rv;
+}
+	THook(void, "?_onClientAuthenticated@ServerNetworkHandler@@AEAAXAEBVNetworkIdentifier@@AEBVCertificate@@@Z", void* snh, NetworkIdentifier& neti, Certificate& cert) {
 	original(snh, neti, cert);
 	PlayerPreJoinEvent::_call(cert, neti);
 }

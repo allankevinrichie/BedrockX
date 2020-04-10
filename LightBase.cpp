@@ -40,7 +40,7 @@ static void loadall() {
 	static std::vector<std::pair<std::wstring, HMODULE>> libs;
 	using namespace std::filesystem;
 	create_directory("bdxmod");
-	LOG("BedrockX Loaded! version 20200404");
+	LOG("BedrockX Loaded! version 20200408");
 	fixupLIBDIR();
 	directory_iterator ent("bdxmod");
 	for (auto& i : ent) {
@@ -83,6 +83,7 @@ void FixUpCWD() {
 	buf = buf.substr(0, buf.find_last_of('\\'));
 	SetCurrentDirectoryA(buf.c_str());
 }
+#include<api\scheduler\scheduler.h>
 void entry(bool fixcwd) {
 	if (fixcwd)
 		FixUpCWD();
