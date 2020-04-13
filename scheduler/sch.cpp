@@ -9,22 +9,41 @@ using std::function;
 namespace Handler {
 	LIGHTBASE_API tick_t ticknow;
 	LIGHTBASE_API taskid_t gtaskid;
-	static int mainid;
 	tick_t _tick;
 	static std::multimap<tick_t, ITaskBase> tasks;
 	static std::deque<function<void()>> next_run;
-	static std::atomic<int> cas;
-	static std::atomic<bool> cas_nextrun;
-	static int zero = 0;
+	static std::atomic_flag cas_main = {};
+	static std::atomic_flag cas_nextrun = {};
+	volatile int lock_owner;
 	inline static int getTID() {
 		auto tid = std::this_thread::get_id();
 		return *(int*)&tid;
 	}
-	static void Init() {
-		mainid = getTID();
-		static_assert(cas.is_always_lock_free);
+	inline volatile bool __lock_main() {
+		int myid = getTID();
+		if (myid == lock_owner)
+			return false;
+		while (cas_main.test_and_set(std::memory_order_acquire))
+			std::this_thread::yield();
+		lock_owner = myid;
+		return true;
 	}
-	static inline bool __cancel(taskid_t id) {
+	inline volatile void __unlock_main() {
+		lock_owner = 0;
+		cas_main.clear(std::memory_order_release);
+	}
+	struct LockGuard {
+		bool locked_by_me;
+		LockGuard() {
+			locked_by_me=__lock_main();
+		}
+		~LockGuard() {
+			if (locked_by_me)
+				__unlock_main();
+		}
+	};
+	LIGHTBASE_API bool cancel(taskid_t id) {
+		LockGuard gd;
 		for (auto it = tasks.begin(); it != tasks.end(); ++it) {
 			if (it->second.taskid == id) {
 				tasks.erase(it);
@@ -33,48 +52,24 @@ namespace Handler {
 		}
 		return false;
 	}
-	LIGHTBASE_API bool cancel(taskid_t id) {
-		int myid = getTID();
-
-		if (myid == mainid && cas.load() == mainid) {
-			return __cancel(id);
-		}
-		while (!cas.compare_exchange_weak(zero, myid))
-			;
-		auto rv = __cancel(id);
-		cas.store(0);
-		return rv;
-	}
-	inline static taskid_t __schedule(ITaskBase&& task) {
+	LBAPI taskid_t schedule(ITaskBase&& task) {
 		auto id = task.taskid;
+		LockGuard gd;
 		tasks.emplace(task.schedule_time, std::forward<ITaskBase>(task));
 		return id;
 	}
-	LBAPI taskid_t schedule(ITaskBase&& task) {
-		int myid = getTID();
-		if (myid == mainid && cas.load() == mainid) {
-			return __schedule(std::forward<ITaskBase>(task));
-		}
-		while (!cas.compare_exchange_weak(zero, myid))
-			;
-		auto rv = __schedule(std::forward<ITaskBase>(task));
-		cas.store(0);
-		return rv;
-	}
 	LBAPI void scheduleNext(function<void()>&& fn) {
-		bool lck = false;
-		while (!cas_nextrun.compare_exchange_weak(lck, true))
-			;
+		while (cas_nextrun.test_and_set(std::memory_order_acquire))
+			std::this_thread::yield();
 		next_run.emplace_back(std::forward<function<void()>>(fn));
-		cas_nextrun.store(false);
+		cas_nextrun.clear(std::memory_order_release); 
 	}
 	inline static void nextrun() {
 		WATCH_ME("tick - nextrun");
 		if (next_run.empty())
 			return;
-		bool lck = false;
-		while (!cas_nextrun.compare_exchange_weak(lck, true))
-			;
+		while (cas_nextrun.test_and_set(std::memory_order_acquire))
+			std::this_thread::yield();
 		try {
 		while (!next_run.empty()) {
 			next_run.front()();
@@ -87,7 +82,7 @@ namespace Handler {
 		catch (...) {
 			printf("[Scheduler] exception when nextTask\n");
 		}
-		cas_nextrun.store(false);
+		cas_nextrun.clear(std::memory_order_release);
 	}
 	inline static void tick() {
 		nextrun();
@@ -96,15 +91,7 @@ namespace Handler {
 			return;
 		ticknow++;
 		WATCH_ME("tick - MainTick");
-		int myid = getTID();
-		bool locked = false;
-		if (myid == mainid && cas.load() == mainid) {
-		}
-		else {
-			while (!cas.compare_exchange_weak(zero, myid))
-				;
-			locked = true;
-		}
+		LockGuard gd;
 		auto it = tasks.begin();
 		auto end = tasks.end();
 		try {
@@ -128,14 +115,9 @@ namespace Handler {
 		catch (...) {
 			printf("[Scheduler] exception when runTask\n");
 		}
-		if (locked)
-			cas.store(0);
 	}
 }
-static bool inited = false;
 THook(void, "?tick@Level@@UEAAXXZ", class Level* lv) {
-	if (!inited)
-		Handler::Init(), inited = true;
 	WATCH_ME("tick level");
 	original(lv);
 	Handler::tick();

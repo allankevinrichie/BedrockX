@@ -5,6 +5,7 @@
 #include<random>
 #include<ctime>
 #include<stl\Logger.h>
+#ifdef TRACING_ENABLED
 void DOG_INIT();
 LBAPI unsigned int DOG_BITE(string&& e);
 LBAPI void DOG_FEED(unsigned int);
@@ -69,3 +70,4 @@ LBAPI void DOG_FEED(unsigned int x) {
 		return std::get<0>(y) == x;
 	});
 }
+#endif

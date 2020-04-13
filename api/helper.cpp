@@ -1,5 +1,7 @@
 ﻿#include <lbpch.h>
 #include<api\types\types.h>
+#include<unordered_map>
+using std::unordered_map;
 class ServerLevel;
 namespace BDX {
 	using std::string;

@@ -58,12 +58,12 @@ LBAPI void WPlayer::kick(const string& reason) {
 LBAPI void WPlayer::forceKick() {
 	LocateS<ServerNetworkHandler>()->onDisconnect(*_getNI());
 }
-static xuid_t getXuid_real(WPlayer wp) {
-	auto xuid = ExtendedCertificate::getXuid(*wp._getCert());
-	return xuid.size() > 1 ? std::stoull(xuid) : 114514;
-}
 static string getName_real(WPlayer wp) {
 	return ExtendedCertificate::getIdentityName(*wp._getCert());
+}
+static xuid_t getXuid_real(WPlayer wp) {
+	auto xuid = ExtendedCertificate::getXuid(*wp._getCert());
+	return xuid.size() > 1 ? std::stoull(xuid) : do_hash(getName_real(wp));
 }
 struct xuidStorage {
 	xuid_t val;

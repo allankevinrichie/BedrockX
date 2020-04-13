@@ -98,6 +98,13 @@ namespace GUI {
 		addmem(max, this->max);
 		addmem(step, this->step);
 	}
+	LIGHTBASE_API void GUISlider2::pack(rapidjson::Value& v, rapidjson::Document::AllocatorType& ac) const {
+		v.SetObject();
+		addmem(type, "step_slider");
+		addmem(text, strval(text));
+		addmem(default, this->def);
+		addmem(steps, this->steps);
+	}
 	LIGHTBASE_API void GUIDropdown::pack(rapidjson::Value& v, rapidjson::Document::AllocatorType& ac) const {
 		v.SetObject();
 		addmem(type, "dropdown");

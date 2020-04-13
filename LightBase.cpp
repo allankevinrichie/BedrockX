@@ -84,6 +84,7 @@ void FixUpCWD() {
 	SetCurrentDirectoryA(buf.c_str());
 }
 #include<api\scheduler\scheduler.h>
+void startWBThread();
 void entry(bool fixcwd) {
 	if (fixcwd)
 		FixUpCWD();
@@ -97,6 +98,7 @@ void entry(bool fixcwd) {
 	loadall();
 	PostInitEvent::_call();
 	PostInitEvent::_removeall();
+	addListener([](ServerStartedEvent&) { startWBThread(); });
 }
 THook(int, "main", int a, void* b) {
 	std::ios::sync_with_stdio(false);

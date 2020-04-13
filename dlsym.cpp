@@ -6,7 +6,9 @@
 #include <cstdio>
 #include <fstream>
 #include"framework.h"
-#include <detours\detours.h> 
+#include <detours\detours.h>
+#include<unordered_map>
+using std::unordered_map;
 using std::list;
 using std::string, std::string_view;
 typedef unsigned long long hash_t;
