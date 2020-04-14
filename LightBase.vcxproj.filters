@@ -312,6 +312,12 @@
     <ClInclude Include="headers\stl\useful.h">
       <Filter>头文件\stl</Filter>
     </ClInclude>
+    <ClInclude Include="headers\stl\format.h">
+      <Filter>头文件\stl</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\stl\static_queue.h">
+      <Filter>头文件\stl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="third-party\lib\detours.lib" />

@@ -45,6 +45,7 @@ THook(void, "?_displayGameMessage@ServerNetworkHandler@@AEAAXAEBVPlayer@@AEBV?$b
 	if (PlayerChatEvent::_call(sp, msg))
 		original(snh, sp, msg);
 }
+#if 0
 THook(void, "?handle@ServerNetworkHandler@@UEAAXAEBVNetworkIdentifier@@AEBVCommandRequestPacket@@@Z", ServerNetworkHandler* snh, NetworkIdentifier& neti, char* pk) {
 	ServerPlayer* sp = snh->_getServerPlayer(neti, pk[16]);
 	if (!sp)
@@ -53,7 +54,22 @@ THook(void, "?handle@ServerNetworkHandler@@UEAAXAEBVNetworkIdentifier@@AEBVComma
 	if (PlayerCMDEvent::_call(*sp, cmd))
 		original(snh, neti, pk);
 }
-THook(bool, "?destroyBlock@GameMode@@UEAA_NAEBVBlockPos@@E@Z", void* thi, BlockPos& pos, uchar unk) {
+#endif
+#include<mcapi/Command/Command.h>
+#include<api/command/commands.h>
+THook(void*, "?executeCommand@MinecraftCommands@@QEBA?AUMCRESULT@@V?$shared_ptr@VCommandContext@@@std@@_N@Z", void* thi,unsigned int* MCRes, std::shared_ptr<CommandContext> x, bool unk) {
+	optional<WPlayer> wp = MakeWP(x->getOrigin());
+	if (wp.set) {
+		auto& cmd = x->getCmd();
+		if (!PlayerCMDEvent::_call(wp.val(), cmd[0]=='/'?cmd:('/'+cmd))) {
+			*MCRes=1;
+			return MCRes;
+		}
+	}
+	return original(thi, MCRes, x, unk);
+	;
+}
+	THook(bool, "?destroyBlock@GameMode@@UEAA_NAEBVBlockPos@@E@Z", void* thi, BlockPos& pos, uchar unk) {
 	if (PlayerDestroyEvent::_call(*dAccess<ServerPlayer*, 8>(thi), pos))
 		return original(thi, pos, unk);
 	return false;

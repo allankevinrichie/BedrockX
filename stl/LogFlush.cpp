@@ -32,7 +32,7 @@ void startWBThread() {
 	std::thread thd([] {
 		while (1) {
 			std::chrono::time_point tp = std::chrono::steady_clock::now();
-			tp += std::chrono::seconds(5);
+			tp += std::chrono::seconds(6);
 			for (int i=0;i<arrsz;++i) {
 				if(arr[i])
 				arr[i]->flushTimer();

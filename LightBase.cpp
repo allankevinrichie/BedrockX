@@ -100,6 +100,7 @@ void entry(bool fixcwd) {
 	PostInitEvent::_removeall();
 	addListener([](ServerStartedEvent&) { startWBThread(); });
 }
+#include<stl\format.h>
 THook(int, "main", int a, void* b) {
 	std::ios::sync_with_stdio(false);
 	system("chcp 65001");
