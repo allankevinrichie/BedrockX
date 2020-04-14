@@ -9,7 +9,7 @@
 #include<api/event/genericEvent.h>
 #include<I18N.h>
 LIGHTBASE_API unsigned long long GetBDXAPILevel() {
-	return 20200404;
+	return 20200414;
 }
 Logger<stdio_commit> LOG(stdio_commit{ "[BDX] " });
 static void PrintErrorMessage() {
@@ -40,7 +40,7 @@ static void loadall() {
 	static std::vector<std::pair<std::wstring, HMODULE>> libs;
 	using namespace std::filesystem;
 	create_directory("bdxmod");
-	LOG("BedrockX Loaded! version 20200408");
+	LOG("BedrockX Loaded! version 20200414");
 	fixupLIBDIR();
 	directory_iterator ent("bdxmod");
 	for (auto& i : ent) {
