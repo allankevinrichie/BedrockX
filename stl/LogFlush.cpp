@@ -10,7 +10,7 @@
 static struct asyncFStream** arr;
 static int arrsz;
 static int arrcap;
-void registerASYNC(struct asyncFStream* p) {
+void registerASYNC2(struct asyncFStream* p) {
 	if (arrsz == arrcap) {
 		arrcap += 4;
 		if (arr)
@@ -20,7 +20,7 @@ void registerASYNC(struct asyncFStream* p) {
 	}
 	arr[arrsz++] = p;
 }
-void unregisterASYNC(struct asyncFStream* p, struct asyncFStream* n) {
+void unregisterASYNC2(struct asyncFStream* p, struct asyncFStream* n) {
 	for (int i=0;i<arrsz;++i) {
 		if(arr[i]==p){
 			arr[i]=n;
@@ -35,7 +35,7 @@ void startWBThread() {
 			tp += std::chrono::seconds(6);
 			for (int i=0;i<arrsz;++i) {
 				if(arr[i])
-				arr[i]->flushTimer();
+					arr[i]->flushTimer();
 			}
 			std::this_thread::sleep_until(tp);
 		}
