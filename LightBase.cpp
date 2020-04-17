@@ -85,7 +85,7 @@ void FixUpCWD() {
 }
 #include<api\scheduler\scheduler.h>
 void startWBThread();
-void entry(bool fixcwd) {
+static void entry(bool fixcwd) {
 	if (fixcwd)
 		FixUpCWD();
 	#ifdef TRACING_ENABLED
@@ -93,17 +93,36 @@ void entry(bool fixcwd) {
 	#endif
 	XIDREG::initAll();
 	GUI::INIT();
-	WItem::determine_off();
 	I18N::InitAll();
 	loadall();
 	PostInitEvent::_call();
 	PostInitEvent::_removeall();
-	addListener([](ServerStartedEvent&) { startWBThread(); });
+	addListener([](ServerStartedEvent&) { 
+		startWBThread();
+		WItem::procoff();
+		LOG("Thanks www.rhymc.com for supporting this project");
+		LOG(u8"感谢旋律云MC(rhymc)对本项目的支持");
+	},EvPrio::LOW);
 }
-#include<stl\format.h>
+//#include<stl\format.h>
+//#include<stl\WorkerPool.h>
 THook(int, "main", int a, void* b) {
 	std::ios::sync_with_stdio(false);
 	system("chcp 65001");
+	#if 0
+	WorkerPool<void(*)(int),int> wp;
+	for (int i = 0; i < 2; ++i) {
+		wp.registerWorker([](int z) {
+			Sleep(z * 1000);
+			LOG(z);
+		});
+	}
+	for (int i = 0; i < 10; ++i) {
+		wp.pushWork(std::move(i));
+	}
+	while (1)
+		Sleep(10000);
+	#endif
 	entry(a>1);
 	return original(a, b);
 }

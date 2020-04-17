@@ -293,6 +293,7 @@
     <ClCompile Include="LightBase.cpp" />
     <ClCompile Include="mc\RuntimeRefl.cpp" />
     <ClCompile Include="mc\ServiceLocator.cpp" />
+    <ClCompile Include="MSearch.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -361,6 +362,7 @@
     <ClInclude Include="headers\stl\varint.h" />
     <ClInclude Include="headers\stl\viewhelper.h" />
     <ClInclude Include="headers\stl\views.h" />
+    <ClInclude Include="headers\stl\WorkerPool.h" />
     <ClInclude Include="headers\stl_pch.h" />
   </ItemGroup>
   <ItemGroup>

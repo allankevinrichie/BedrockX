@@ -32,8 +32,20 @@ THook(void*, "??0Dimension@@QEAA@AEAVLevel@@V?$AutomaticID@VDimension@@H@@FAEAVS
 	dim_id[a0_dim] = a2_id;
 	return rv;
 }
+#include<debug/MemSearcher.h>
+static MSearcherEx<BlockSource*> pDim_BS;
 LBAPI BlockSource& WDim::getBlockSource_() {
-	return *dAccess<BlockSource*, 72>(v);
+	if (!pDim_BS.myOff) {
+		pDim_BS.init(
+			v, [](void* x) {
+				return (MreadPtr_Compare((const void***)x, SYM("??_7BlockSource@@6B@")));
+			},
+			72);
+	}
+	return **pDim_BS.get(v);
+	#if 0
+		return *dAccess<BlockSource*, 72>(v); //TODO auto search
+	#endif
 }
 LBAPI void WDim::setBlock(int x, int y, int z, Block const& blk) {
 	getBlockSource_().setBlock({ x, y, z }, blk, 3, nullptr);

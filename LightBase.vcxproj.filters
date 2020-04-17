@@ -151,6 +151,9 @@
     <ClCompile Include="stl\LogFlush.cpp">
       <Filter>源文件\stl</Filter>
     </ClCompile>
+    <ClCompile Include="MSearch.cpp">
+      <Filter>源文件\debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\api\hash.h">
@@ -316,6 +319,9 @@
       <Filter>头文件\stl</Filter>
     </ClInclude>
     <ClInclude Include="headers\stl\static_queue.h">
+      <Filter>头文件\stl</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\stl\WorkerPool.h">
       <Filter>头文件\stl</Filter>
     </ClInclude>
   </ItemGroup>
