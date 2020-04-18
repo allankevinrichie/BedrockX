@@ -157,7 +157,6 @@ static inline int realHook(void* oldfunc, void** poutold, void* newfunc) {
 	*poutold = target;
 	return rv;
 }
-#include<thread>
 LBAPI int HookFunction(void* oldfunc, void** poutold, void* newfunc) {
 	static unordered_map<void*, void**> ptr_pori;
 	auto it = ptr_pori.find(oldfunc);
@@ -169,7 +168,6 @@ LBAPI int HookFunction(void* oldfunc, void** poutold, void* newfunc) {
 		return 0;
 	}
 	else {
-		printf("%p %p->%p\n", it->second,*it->second,newfunc );
 		*poutold = *it->second;
 		*it->second = newfunc;
 		return 0;

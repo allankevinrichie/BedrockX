@@ -9,7 +9,7 @@
 #include<api/event/genericEvent.h>
 #include<I18N.h>
 LIGHTBASE_API unsigned long long GetBDXAPILevel() {
-	return 20200414;
+	return 20200419;
 }
 Logger<stdio_commit> LOG(stdio_commit{ "[BDX] " });
 static void PrintErrorMessage() {
@@ -40,7 +40,7 @@ static void loadall() {
 	static std::vector<std::pair<std::wstring, HMODULE>> libs;
 	using namespace std::filesystem;
 	create_directory("bdxmod");
-	LOG("BedrockX Loaded! version 20200414");
+	LOG("BedrockX Loaded! version 20200419");
 	fixupLIBDIR();
 	directory_iterator ent("bdxmod");
 	for (auto& i : ent) {
@@ -95,11 +95,11 @@ static void entry(bool fixcwd) {
 	GUI::INIT();
 	I18N::InitAll();
 	loadall();
+	WItem::procoff();
 	PostInitEvent::_call();
 	PostInitEvent::_removeall();
 	addListener([](ServerStartedEvent&) { 
 		startWBThread();
-		WItem::procoff();
 		LOG("Thanks www.rhymc.com for supporting this project");
 		LOG(u8"感谢旋律云MC(rhymc)对本项目的支持");
 	},EvPrio::LOW);

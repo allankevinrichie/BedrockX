@@ -23,14 +23,14 @@ namespace Handler {
 		int myid = getTID();
 		if (myid == lock_owner)
 			return false;
-		while (cas_main.test_and_set(std::memory_order_acquire))
+		while (cas_main.test_and_set())
 			std::this_thread::yield();
 		lock_owner = myid;
 		return true;
 	}
 	inline volatile void __unlock_main() {
 		lock_owner = 0;
-		cas_main.clear(std::memory_order_release);
+		cas_main.clear();
 	}
 	struct LockGuard {
 		bool locked_by_me;
@@ -68,7 +68,7 @@ namespace Handler {
 		WATCH_ME("tick - nextrun");
 		if (next_run.empty())
 			return;
-		while (cas_nextrun.test_and_set(std::memory_order_acquire))
+		while (cas_nextrun.test_and_set())
 			std::this_thread::yield();
 		try {
 		while (!next_run.empty()) {
@@ -82,7 +82,7 @@ namespace Handler {
 		catch (...) {
 			printf("[Scheduler] exception when nextTask\n");
 		}
-		cas_nextrun.clear(std::memory_order_release);
+		cas_nextrun.clear();
 	}
 	inline static void tick() {
 		nextrun();
