@@ -60,8 +60,10 @@ THook(void, "?handle@ServerNetworkHandler@@UEAAXAEBVNetworkIdentifier@@AEBVComma
 THook(void*, "?executeCommand@MinecraftCommands@@QEBA?AUMCRESULT@@V?$shared_ptr@VCommandContext@@@std@@_N@Z", void* thi,unsigned int* MCRes, std::shared_ptr<CommandContext> x, bool unk) {
 	optional<WPlayer> wp = MakeWP(x->getOrigin());
 	if (wp.set) {
-		auto& cmd = x->getCmd();
-		if (!PlayerCMDEvent::_call(wp.val(), cmd[0]=='/'?cmd:('/'+cmd))) {
+		string_view cmd(x->getCmd());
+		if (cmd.front() == '/')
+			cmd.remove_prefix(1);
+		if (!PlayerCMDEvent::_call(wp.val(), cmd)) {
 			*MCRes=1;
 			return MCRes;
 		}

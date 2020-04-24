@@ -40,7 +40,7 @@ static void loadall() {
 	static std::vector<std::pair<std::wstring, HMODULE>> libs;
 	using namespace std::filesystem;
 	create_directory("bdxmod");
-	LOG("BedrockX Loaded! version 20200419");
+	LOG("BedrockX Loaded! version 20200424");
 	fixupLIBDIR();
 	directory_iterator ent("bdxmod");
 	for (auto& i : ent) {
