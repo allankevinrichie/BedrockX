@@ -5,6 +5,7 @@
 #include <sstream>
 #include <ctime>
 #include <iostream>
+#include<thread>
 using std::string_view;
 struct stdio_commit {
 	string_view prefix;
@@ -17,9 +18,79 @@ struct stdio_commit {
 };
 #include<filesystem>
 #include<string>
+#include<atomic>
+#include<api\lightbase.h>
+LBAPI void registerASYNC2(struct asyncFStream*);
+LBAPI void unregisterASYNC2(struct asyncFStream*,struct asyncFStream*);
+using std::string;
+struct asyncFStream {
+	std::ofstream ofs;
+	std::unique_ptr<string> buf1;
+	std::unique_ptr<string> buf2;
+	std::atomic_flag _lock = ATOMIC_FLAG_INIT;
+#define lock()                                            \
+	while (_lock.test_and_set(std::memory_order_acquire)) \
+	std::this_thread::yield()
+#define unlock() _lock.clear()
+	asyncFStream() {
+		registerASYNC2(this);
+		buf1=std::make_unique<string>();
+		buf2 = std::make_unique<string>();
+		buf1->reserve(2048);
+		buf2->reserve(2048);
+	}
+	asyncFStream(asyncFStream&& r) noexcept{
+		unregisterASYNC2(&r,this);
+		ofs=std::move(r.ofs);
+		buf1 = std::move(r.buf1);
+		buf2 = std::move(r.buf2);
+	}
+	~asyncFStream() {
+		unregisterASYNC2(this,nullptr);
+	}
+	inline void _flush_buffer(string* x) {
+		ofs.write(x->data(),x->size());
+		x->clear();
+	}
+	void close() {
+		lock();
+		_flush_buffer(buf1.get());
+		ofs.close();
+		unlock();
+	}
+	void open(const char* name) {
+		lock();
+		ofs.open(name,std::ios::app);
+		ofs.rdbuf()->pubsetbuf(nullptr,0);
+		unlock();
+	}
+	void flushTimer() {
+		if (buf1->size()) {
+			lock();
+			buf1.swap(buf2);
+			unlock();
+			_flush_buffer(buf2.get());
+		}
+	}
+	template <typename... T>
+	inline void write(T&&... x) {
+		lock();
+		(buf1->append(std::forward<T>(x)), ...);
+		unlock();
+	}
+	template <typename... T>
+	inline void writeLine(T&&... x) {
+		lock();
+		(buf1->append(std::forward<T>(x)), ...);
+		buf1->push_back('\n');
+		unlock();
+	}
+	#undef lock
+	#undef unlock
+};
 using std::string;
 struct file_commit {
-	std::ofstream dat;
+	asyncFStream dat;
 	const char* fn;
 	unsigned int totalWrite=0;
 	unsigned int maxWrite;
@@ -54,23 +125,28 @@ struct file_commit {
 		}
 		catch (...) {}
 	}
-	file_commit(const char* fn_,unsigned int maxLogs_=3,unsigned int maxWrite_=4*1024*1024) {
+	file_commit(const char* fn_, unsigned int maxLogs_ = 3, unsigned int maxWrite_ = 4 * 1024 * 1024) {
 		//maxWrite 4MB fn.log fn.log.1 fn.log.2
 		fn = fn_;
+		dat.open(fn);
 		maxWrite = maxWrite_;
 		maxLogs = maxLogs_;
 		TryTidyUp();
-		dat = std::ofstream(fn, std::ios::app);
 	}
+	file_commit(file_commit&& r)noexcept :dat(std::move(r.dat)){
+		maxWrite = r.maxWrite;
+		maxLogs = r.maxLogs;
+		fn = r.fn;
+		totalWrite = 0;
+	}
+	file_commit(const file_commit&) = delete;
 	void operator()(string_view extra, string_view content) {
-		dat << extra;
-		dat << content << '\n';
-		totalWrite += extra.size() + content.size();
+		dat.writeLine(extra,content);
+		totalWrite += (unsigned  int)(extra.size() + content.size());
 		if (totalWrite > maxWrite) {
-			dat.flush();
 			dat.close();
 			TryTidyUp();
-			dat = std::ofstream(fn, std::ios::app);
+			dat.open(fn);
 			totalWrite = 0;
 		}
 	}
@@ -78,7 +154,7 @@ struct file_commit {
 template <typename... TP>
 struct stacked {
 	std::tuple<TP...> data;
-	stacked(TP&&... args) noexcept : data{ std::forward<TP>(args)... } {}
+	stacked(TP&&... args) noexcept :data(std::forward<TP>(args)...) {}
 	template <size_t idx, typename... TC>
 	void _call(TC&&... args) noexcept {
 		std::get<idx>(data)(std::forward<TC>(args)...);

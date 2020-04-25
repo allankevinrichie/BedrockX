@@ -9,7 +9,7 @@
 #include<api/event/genericEvent.h>
 #include<I18N.h>
 LIGHTBASE_API unsigned long long GetBDXAPILevel() {
-	return 20200404;
+	return 20200419;
 }
 Logger<stdio_commit> LOG(stdio_commit{ "[BDX] " });
 static void PrintErrorMessage() {
@@ -40,7 +40,7 @@ static void loadall() {
 	static std::vector<std::pair<std::wstring, HMODULE>> libs;
 	using namespace std::filesystem;
 	create_directory("bdxmod");
-	LOG("BedrockX Loaded! version 20200408");
+	LOG("BedrockX Loaded! version 20200424");
 	fixupLIBDIR();
 	directory_iterator ent("bdxmod");
 	for (auto& i : ent) {
@@ -84,7 +84,8 @@ void FixUpCWD() {
 	SetCurrentDirectoryA(buf.c_str());
 }
 #include<api\scheduler\scheduler.h>
-void entry(bool fixcwd) {
+void startWBThread();
+static void entry(bool fixcwd) {
 	if (fixcwd)
 		FixUpCWD();
 	#ifdef TRACING_ENABLED
@@ -92,15 +93,36 @@ void entry(bool fixcwd) {
 	#endif
 	XIDREG::initAll();
 	GUI::INIT();
-	WItem::determine_off();
 	I18N::InitAll();
 	loadall();
+	WItem::procoff();
 	PostInitEvent::_call();
 	PostInitEvent::_removeall();
+	addListener([](ServerStartedEvent&) { 
+		startWBThread();
+		LOG("Thanks www.rhymc.com for supporting this project");
+		LOG(u8"感谢旋律云MC(rhymc)对本项目的支持");
+	},EvPrio::LOW);
 }
+//#include<stl\format.h>
+//#include<stl\WorkerPool.h>
 THook(int, "main", int a, void* b) {
 	std::ios::sync_with_stdio(false);
 	system("chcp 65001");
+	#if 0
+	WorkerPool<void(*)(int),int> wp;
+	for (int i = 0; i < 2; ++i) {
+		wp.registerWorker([](int z) {
+			Sleep(z * 1000);
+			LOG(z);
+		});
+	}
+	for (int i = 0; i < 10; ++i) {
+		wp.pushWork(std::move(i));
+	}
+	while (1)
+		Sleep(10000);
+	#endif
 	entry(a>1);
 	return original(a, b);
 }

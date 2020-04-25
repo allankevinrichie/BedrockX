@@ -1,4 +1,5 @@
 The next modding framework for Minecraft Bedrock Server on Windows
+telegram:@bdlauncher
 examples: https://github.com/Sysca11/BedrockKit
 LICENCE:
 GPLv3 with extra restrictions&exceptions

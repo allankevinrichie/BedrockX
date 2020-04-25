@@ -1,6 +1,22 @@
 ﻿#include <lbpch.h>
 #include<api\types\types.h>
 #include<mcapi/Actor.h>
+#include<debug/MemSearcher.h>
+#include<mcapi/Level.h>
+static MSearcherEx<unsigned long long> wa_getrtid;
+unsigned long long WActor::getRuntimeID() {
+	if (!wa_getrtid.myOff) {
+		auto plvl=LocateS<ServerLevel>::_srv;
+		wa_getrtid.init(
+			v, [plvl,base=this->v](void* x) -> bool {
+				uintptr_t xx = (uintptr_t)x;
+				if ((xx & 7))
+					return false;
+				return plvl->getRuntimeEntity({ *(u64*)x }, false) == base;
+			}, 159 * 8);
+	}
+	return *wa_getrtid.get(v);
+}
 static uintptr_t poff_dim;
 LBAPI WDim WActor::getDim() {
 	if (!poff_dim) {

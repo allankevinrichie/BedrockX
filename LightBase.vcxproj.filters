@@ -148,6 +148,12 @@
     <ClCompile Include="debug\watchdog.cpp">
       <Filter>源文件\debug</Filter>
     </ClCompile>
+    <ClCompile Include="stl\LogFlush.cpp">
+      <Filter>源文件\stl</Filter>
+    </ClCompile>
+    <ClCompile Include="MSearch.cpp">
+      <Filter>源文件\debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\api\hash.h">
@@ -305,6 +311,18 @@
     </ClInclude>
     <ClInclude Include="headers\debug\MemSearcher.h">
       <Filter>头文件\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\stl\useful.h">
+      <Filter>头文件\stl</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\stl\format.h">
+      <Filter>头文件\stl</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\stl\static_queue.h">
+      <Filter>头文件\stl</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\stl\WorkerPool.h">
+      <Filter>头文件\stl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

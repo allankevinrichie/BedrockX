@@ -6,7 +6,10 @@
 #include <cstdio>
 #include <fstream>
 #include"framework.h"
-#include <detours\detours.h> 
+#include <detours\detours.h>
+#include<unordered_map>
+#include<vector>
+using std::unordered_map,std::vector;
 using std::list;
 using std::string, std::string_view;
 typedef unsigned long long hash_t;
@@ -49,10 +52,43 @@ struct RoDB_R {
 		while ((ch = fp.get()) != 0)
 			buf.append(1, ch);
 	}
-	unsigned int get(string_view key) {
+	string val2key(unsigned int rva) {
+		fp.seekg(std::streampos(data_off));
+		string name;
+		name.reserve(8192);
+		while (!fp.eof()) {
+			int ch=fp.get();
+			if (ch == 0) {
+				unsigned int dst;
+				fp.read((char*)&dst, 4);
+				if (dst == rva) {
+					return name;
+				}
+				else {
+					name.clear();	
+				}
+			}
+			else {
+				name.push_back(ch);
+			}
+		}
+		return "(nil)";
+	}
+	bool _cmp(string_view key) {
+		for (u32 i = 0; i < key.size(); ++i) {
+			int ch = fp.get();
+			if (ch !=key[i]) {
+				return false;
+			}
+		}
+		return fp.get()==0;
+	}
+	unsigned int get(string_view key) { //return file offset
 		auto hash = BKDR(key.data(), key.size());
 		auto bkoff = bucket[hash % cnt_bucket];
 		fp.seekg(std::streampos(bkoff));
+		vector<unsigned int> tolookup;
+		tolookup.reserve(512);
 		while (1) {
 			hash_t hs;
 			unsigned int off;
@@ -60,23 +96,36 @@ struct RoDB_R {
 			fp.read(ppch(off), 4);
 			if (off == 0xffffffff)
 				break;
+			if (hs == hash)
+				tolookup.push_back(off + data_off);
+			/*
 			if (hs == hash) {
 				off += data_off;
 				auto pos = fp.tellg();
 				string key_now;
 				getstr(key_now, off);
 				if (key == key_now) {
-					return off + (unsigned int)key.size() + 1 /*0x0*/;
+					return off + (unsigned int)key.size() + 1;
 				}
 				fp.seekg(pos);
+			}*/
+		}
+		for (auto off : tolookup) {
+			fp.seekg({ off });
+			if (_cmp(key)) {
+				return off + (u32)key.size() + 1;
 			}
 		}
 		return 0;
 	}
 };
+static RoDB_R* pdb;
+static uintptr_t BaseAdr;
+LBAPI string ptr2name(void* ptr) {
+	unsigned int va = u32(((uintptr_t)ptr - BaseAdr));
+	return pdb->val2key(va);
+}
 LBAPI void* dlsym_real(const char* x) {
-	static RoDB_R* pdb = nullptr;
-	static uintptr_t BaseAdr;
 	if (pdb == nullptr) {
 		if (!std::filesystem::exists("bedrock_server.symdb")) {
 			printf("SymDB not found\ntry rerun gensymdb.exe\n");
@@ -108,7 +157,6 @@ static inline int realHook(void* oldfunc, void** poutold, void* newfunc) {
 	*poutold = target;
 	return rv;
 }
-#include<thread>
 LBAPI int HookFunction(void* oldfunc, void** poutold, void* newfunc) {
 	static unordered_map<void*, void**> ptr_pori;
 	auto it = ptr_pori.find(oldfunc);
@@ -120,7 +168,6 @@ LBAPI int HookFunction(void* oldfunc, void** poutold, void* newfunc) {
 		return 0;
 	}
 	else {
-		printf("%p %p->%p\n", it->second,*it->second,newfunc );
 		*poutold = *it->second;
 		*it->second = newfunc;
 		return 0;

@@ -76,7 +76,7 @@ namespace XIDREG {
 			auto _xuid = ExtendedCertificate::getXuid(cert);
 			xuid_t xuid;
 			if (_xuid.size() <= 1)
-				xuid = 114514;
+				xuid = do_hash(name);
 			else
 				xuid = std::stoull(_xuid);
 			insert(xuid, name);

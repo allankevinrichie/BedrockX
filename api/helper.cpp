@@ -1,5 +1,7 @@
 ﻿#include <lbpch.h>
 #include<api\types\types.h>
+#include<unordered_map>
+using std::unordered_map;
 class ServerLevel;
 namespace BDX {
 	using std::string;
@@ -37,12 +39,23 @@ namespace BDX {
 		static SCO origin;
 		return MinecraftCommands::_runcmd(&origin, cmd, 4, 1);
 	}
+	LBAPI bool runcmd(string&& cmd) {
+		static SCO origin;
+		return MinecraftCommands::_runcmd(&origin, std::move(cmd), 4, 1);
+	}
 	static unordered_map<void*, string*> origin_res;
 	LBAPI std::pair<bool, string> runcmdEx(const string& cmd) {
 		SCO origin;
 		string val;
 		origin_res[&origin] = &val;
 		bool rv = MinecraftCommands::_runcmd(&origin, cmd, 4, 1);
+		return { rv, std::move(val) };
+	}
+	LBAPI std::pair<bool, string> runcmdEx(string&& cmd) {
+		SCO origin;
+		string val;
+		origin_res[&origin] = &val;
+		bool rv = MinecraftCommands::_runcmd(&origin, std::move(cmd), 4, 1);
 		return { rv, std::move(val) };
 	}
 	static void* FAKE_PORGVTBL[26];
@@ -55,6 +68,16 @@ namespace BDX {
 		}
 		filler[0] = FAKE_PORGVTBL+1;
 		return MinecraftCommands::_runcmd(filler, cmd, 4, 1);
+	}
+	LBAPI bool runcmdAs(WPlayer wp, string&& cmd) {
+		void** filler[5];
+		SymCall("??0PlayerCommandOrigin@@QEAA@AEAVPlayer@@@Z", void, void*, ServerPlayer*)(filler, wp);
+		if (FAKE_PORGVTBL[1] == NULL) {
+			memcpy(FAKE_PORGVTBL, ((void**)filler[0]) - 1, sizeof(FAKE_PORGVTBL));
+			FAKE_PORGVTBL[1] = (void*)dummy;
+		}
+		filler[0] = FAKE_PORGVTBL + 1;
+		return MinecraftCommands::_runcmd(filler, std::move(cmd), 4, 1);
 	}
 	LBAPI string getIP(class ::NetworkIdentifier& ni) {
 		string rv = LocateS<RakPeer_t>()->getAdr(ni).toString();
